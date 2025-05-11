@@ -1,0 +1,109 @@
+---
+title: "Untitled"
+author: "Sivani_Ravindran"
+date: "2025-04-20"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+```{r}
+# Extract variable importance from the model
+importance_data <- importance(ranfor_model)
+
+# Convert the importance data to a data frame (for easier manipulation)
+importance_df <- as.data.frame(importance_data)
+
+# Add a column for feature names (row names)
+importance_df$Gene <- rownames(importance_df)
+
+# View the importance data
+print(importance_df)
+
+# Select the top 10 genes based on MeanDecreaseAccuracy
+top_genes_50 <- importance_df[order(-importance_df$MeanDecreaseAccuracy), ][1:50, ]
+
+# Extract the gene names
+top_gene_names_50 <- top_genes_50$Gene
+print(top_gene_names_50)
+
+
+```
+
+
+```{r}
+#This is just mapping the ensembl ids to gene names
+library(biomaRt)
+
+ensembl <- useMart("ensembl", dataset = "hsapiens_gene_ensembl")
+
+ensembl_ids <- c("ENSG00000164713","ENSG00000115756" ,"ENSG00000152049" ,"ENSG00000131069" ,"ENSG00000067113", "ENSG00000100473", "ENSG00000123119","ENSG00000149435", "ENSG00000164690", "ENSG00000114270" ,"ENSG00000166402", "ENSG00000093144", "ENSG00000160752", "ENSG00000164400","ENSG00000164694", "ENSG00000160469" ,"ENSG00000078081" ,"ENSG00000082512", "ENSG00000258947", "ENSG00000000971", "ENSG00000125170","ENSG00000165175", "ENSG00000172667" ,"ENSG00000143418", "ENSG00000075239", "ENSG00000161640", "ENSG00000172840", "ENSG00000084636","ENSG00000176046", "ENSG00000144285", "ENSG00000146072", "ENSG00000134874", "ENSG00000196821", "ENSG00000143387", "ENSG00000102978","ENSG00000049089", "ENSG00000163659", "ENSG00000173227", "ENSG00000145808", "ENSG00000153395", "ENSG00000139220", "ENSG00000136048","ENSG00000166189", "ENSG00000115641", "ENSG00000102921", "ENSG00000162804" ,"ENSG00000116717", "ENSG00000196260", "ENSG00000168453","ENSG00000137501")
+
+gene_annotations <- getBM(attributes = c("ensembl_gene_id", "hgnc_symbol", "description"), #hgnc_symbol refers to the gene name
+                           filters = "ensembl_gene_id",
+                           values = ensembl_ids,
+                           mart = ensembl)
+
+print(gene_annotations)
+# Extract the gene names (hgnc_symbol column)
+gene_names <- gene_annotations$hgnc_symbol
+
+# Print the gene names
+print(gene_names)
+
+gene_names_50 <- c("CFH" ,"COL9A2","PLPP1", "ACAT1","LAMP3","TRAF5","COL16A1","ECHDC1" ,"COCH", "N4BP1","POLR2C","COL7A1","FHL2", "HPCAL1",   "GADD45A" , "NECAB1" ,"DOK4" , "ACSS2" ,"DZIP1" ,"DRAM1" ,"SYTL2","PPFIA2" ,"CTSK","CERS2","SCN1A" , "ADAMTS19" ,"TNFRSF21" ,"GGTLC1",   "KCNE4",    "LPCAT1","BRSK1" ,"FDPS" ,"SIGLEC11" ,"SNED1","TIPARP","CSF2", "SHH","FNDC1" ,"BRI3", "MID1IP1","HPS6" ,"TUB" ,"HR", "ZMAT3","PDP2" ,    "SYT12","NUPR1","SFTA2"  )
+
+# Example: Using msigdbr for hallmark gene sets
+library(msigdbr)
+msig_data <- msigdbr(species = "Homo sapiens", category = "H")
+head(msig_data)
+
+matched_genes <- msig_data[msig_data$gene_symbol %in% gene_names_50, ]
+print(matched_genes)
+
+# Count the occurrences of pathways
+pathway_summary <- table(matched_genes$gs_name)
+
+# View the summary
+print(pathway_summary)
+```
+
+
+```{r}
+
+
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
