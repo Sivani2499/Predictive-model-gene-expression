@@ -1,0 +1,187 @@
+---
+title: "IPF project"
+author: "Sivani_Ravindran"
+output: html_document
+date: "2025-03-20"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+```{r}
+library(dplyr)
+library(tidyverse)
+#install.packages("GEOquery")
+#install.packages("BiocManager")
+#BiocManager::install("GEOquery")
+library(GEOquery)
+```
+
+```{r}
+#reading file
+data <- read.csv("/Users/shivaniravindran/Library/CloudStorage/Box-Box/Class_files_SEM2/BMDS/IPF_dataset.csv")
+dim(data)
+```
+
+
+```{r}
+#GET METADATA
+gse <- getGEO(GEO ='GSE213001', GSEMatrix=TRUE)
+gse
+
+metadata <- pData(phenoData(gse[[1]]))
+head(metadata)
+colnames(metadata)
+dim(metadata)
+
+#write.csv(metadata, "metadata.csv",row.names = TRUE)
+```
+
+
+```{r}
+#metadata.subset <- select(metadata, c(1,10,11,12,15,17,18,19,20,21,22,27,28,29,30,31,32))
+
+```
+
+
+```{r}
+#using pipe operator
+metadata.modified <- metadata%>%
+  select(c(1,11,12,15,17,19,20,21,22,27,28,29,30,31,32))
+
+head(metadata.modified)
+```
+
+
+```{r}
+#renaming the columns
+metadata.modified <-metadata.modified%>%
+  rename(Donor_id = characteristics_ch1.1)%>%
+  rename(Group = characteristics_ch1.2)%>%
+  rename(Lung_location = characteristics_ch1.5)%>%
+  rename(Disease_status = characteristics_ch1.7)%>%
+  rename(Gender = characteristics_ch1.9)%>%
+  rename(Diagnosis = characteristics_ch1.10)%>%
+  rename(Age = characteristics_ch1.11)%>%
+  rename(Lung_weight = characteristics_ch1.12)%>%
+  rename(Disease_subtype = characteristics_ch1.17)%>%
+  rename(Smoking_status = characteristics_ch1.18)%>%
+  rename(Severity = characteristics_ch1.19)%>%
+  rename(Forced_vital_capacity = characteristics_ch1.20)%>%
+  rename(Diffusing_capacity_CO = characteristics_ch1.21)%>%
+  rename(Diffusing_capacity_corrected = characteristics_ch1.22)
+```
+
+
+```{r}
+#mutating the columns to remove the unwanted strings
+metadata.modified <- metadata.modified%>%
+  mutate(Donor_id = gsub("donorid: ", "", Donor_id))%>%
+  mutate(Group = gsub("group: ", "", Group))%>%
+  mutate(Lung_location = gsub("lunglocation: ", "", Lung_location))%>%
+  mutate(Disease_status = gsub("diseasenormal: ", "", Disease_status))%>%
+  mutate(Diagnosis = gsub("diagnosis: ", "", Diagnosis))%>%
+  mutate(Age = gsub("age: ", "", Age))%>%
+  mutate(Gender = gsub("gender: ", "", Gender))%>%
+  mutate(Lung_weight = gsub("lungweight mg: ", "", Lung_weight))%>%
+  mutate(Disease_subtype = gsub("diseasesubtype:", "", Disease_subtype))%>%
+  mutate(Severity = gsub("severity:", "", Severity))%>%
+  mutate(Forced_vital_capacity = gsub("fvcprebd perc:", "", Forced_vital_capacity))%>%
+  mutate(Diffusing_capacity_CO = gsub("dlco perc:", "", Diffusing_capacity_CO))%>%
+  mutate(Diffusing_capacity_corrected = gsub("dlco perc_corrected:", "", Diffusing_capacity_corrected))%>%
+  mutate(Smoking_status = gsub("smokingstatus: ", "", Smoking_status))
+head(metadata.modified)
+```
+```{r}
+colnames(metadata.modified)
+#write.csv(metadata.modified, "metadata_modified.csv", row.names = TRUE)
+```
+
+```{r}
+#reshaping the data, converting it to long so that we can merge the columns
+head(data)
+data.long <-data%>%
+  rename(gene = X) %>%
+  gather(key='samples', value = 'RPKM', -gene)
+```
+
+
+```{r}
+#joining the data frames : data.long + metadata.modified
+data.long <-data.long%>%
+  left_join(., metadata.modified, by= c("samples" = "Donor_id"))
+
+head(data.long)
+unique(data.long $Disease_status)
+```
+
+
+```{r}
+#explore data
+data.long %>%
+  filter(gene== 'ENSG00000116299' | gene== 'ENSG00000143036') %>%
+  group_by(gene, Disease_status) %>%
+  summarize(mean_RPKM = mean(RPKM),
+            median_RPKM = median(RPKM)) %>%
+  arrange(mean_RPKM)
+```
+
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+```
+
+
+```{r}
+head(data.long)
+data.long %>%
+  filter(gene== 'ENSG00000116299') %>%
+  ggplot(., aes(x= samples, y= RPKM, fill = Disease_status)) +
+  geom_col()
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
